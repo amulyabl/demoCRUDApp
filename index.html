@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        form { margin-bottom: 20px; }
+        .result { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<h1>User Management</h1>
+
+<!-- Create User Form -->
+<h2>Create User</h2>
+<form id="createUserForm">
+    <input type="text" id="createName" placeholder="Name" required />
+    <input type="email" id="createEmail" placeholder="Email" required />
+    <button type="submit">Create User</button>
+</form>
+
+<!-- Get User Form -->
+<h2>Get User</h2>
+<form id="getUserForm">
+    <input type="text" id="getUserId" placeholder="User ID" required />
+    <button type="submit">Get User</button>
+</form>
+
+<!-- Update User Form -->
+<h2>Update User</h2>
+<form id="updateUserForm">
+    <input type="text" id="updateUserId" placeholder="User ID"  />
+    <input type="text" id="updateName" placeholder="New Name" />
+    <input type="email" id="updateEmail" placeholder="New Email" />
+    <button type="submit">Update User</button>
+</form>
+
+<!-- Delete User Form -->
+<h2>Delete User</h2>
+<form id="deleteUserForm">
+    <input type="text" id="deleteUserId" placeholder="User ID" required />
+    <button type="submit">Delete User</button>
+</form>
+<h2>Get All Users</h2>
+<form id="getAllUserForm">
+
+    <button type="submit">Get All User</button>
+</form>
+<table id="userTable">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+    </tr>
+    </thead>
+    <tbody id="userTableBody">
+    <!-- User rows will be injected here -->
+    </tbody>
+</table>
+<div class="result" id="result">
+
+</div>
+
+<script>
+    const resultDiv = document.getElementById('result');
+   // const updateResultDiv = document.getElementById('updateResult');
+    // Create User
+    document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('createName').value;
+        const email = document.getElementById('createEmail').value;
+
+        const response = await fetch('/user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email })
+        });
+        const data = await response.json();
+        resultDiv.innerHTML = `User Created Successfully`;
+    });
+
+    // Get User
+    document.getElementById('getUserForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const userId = document.getElementById('getUserId').value;
+        try {
+            const response = await fetch(`/user/${userId}`);
+
+            if (response.ok) {
+                const data = await response.json();
+                resultDiv.innerHTML = `User details: ${JSON.stringify(data)}`;
+            } else {
+                const errorData = await response.json();
+                switch (response.status) {
+                    case 400:
+                        resultDiv.innerHTML = `Error 400: ${errorData.error || "Invalid user ID"}`;
+                        break;
+                    case 404:
+                        resultDiv.innerHTML = `Error 404: ${errorData.error || "User Not Found"}`;
+                        break;
+                    default:
+                        resultDiv.innerHTML = `Error: ${errorData.error || "An unknown error occurred"}`;
+                        break;
+                }
+            }
+       } catch (error) {
+
+       resultDiv.innerHTML = `Error : ${error.message}`;
+   }
+    });
+
+    // Update User
+    document.getElementById('updateUserForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const userId = document.getElementById('updateUserId').value;
+        const name = document.getElementById('updateName').value;
+        const email = document.getElementById('updateEmail').value;
+
+
+             try {
+                 const response = await fetch(`/user/${userId}`, {
+                     method: 'PATCH',
+                     headers: {'Content-Type': 'application/json'},
+                     body: JSON.stringify({name, email})
+                 });
+                 if(response.ok){
+                     const data = await response.json();
+                      resultDiv.innerHTML = `${data.message}`;
+                 } else {
+                     const errorData = await response.json();
+                     switch (response.status) {
+                         case 400:
+                             resultDiv.innerHTML = `Error 400: ${errorData.error || "Invalid user ID"}`;
+                             break;
+                         case 404:
+                             resultDiv.innerHTML = `Error 404: ${errorData.error || "User Not Found"}`;
+                             break;
+                         default:
+                             resultDiv.innerHTML = `Error: ${errorData.error || "An unknown error occurred"}`;
+                             break;
+                     }
+                 }
+
+             }catch (error) {
+                 resultDiv.innerHTML = `Error : User could not be updated`;
+             }
+
+    });
+
+    // Delete User
+    document.getElementById('deleteUserForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const userId = document.getElementById('deleteUserId').value;
+
+        const response = await fetch(`/user/${userId}`, {
+            method: 'DELETE'
+        });
+        const data = await response.json();
+        resultDiv.innerHTML = `User deleted: ${JSON.stringify(data)}`;
+    });
+    //Get all users
+    document.getElementById('getAllUserForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const response = await fetch(`/users`, {
+            method: 'GET'
+        });
+        const data = await response.json();
+        displayUsers(data)
+        //resultDiv.innerHTML = ` ${JSON.stringify(data)}`;
+
+    });
+    function displayUsers(users) {
+        const userTableBody = document.getElementById('userTableBody');
+        userTableBody.innerHTML = ''; // Clear previous data
+
+        // Loop through each user and create a table row
+        users.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                `;
+            userTableBody.appendChild(row); // Append the row to the table body
+        });
+    }
+
+</script>
+</body>
+</html>

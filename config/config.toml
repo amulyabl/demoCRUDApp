@@ -1,0 +1,7 @@
+
+[Database]
+  User = "root"
+  Password = ""
+  Name = "demoDB"
+  Host = "127.0.0.1"
+  Port = "3306"
